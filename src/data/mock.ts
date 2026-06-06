@@ -32,3 +32,22 @@ export const weeklyStats = [
   { day: "Sh", count: 31 },
   { day: "Ya", count: 16 },
 ]
+
+export interface Anomaly {
+  id: number
+  type: "fight" | "fall" | "crowd" | "weapon" | "run"
+  location: string
+  camera: string
+  time: string
+  status: "active" | "resolved"
+  confidence: number
+}
+
+export const anomalies: Anomaly[] = [
+  { id: 1, type: "fight", location: "Chorsu bozori", camera: "Chorsu-1", time: "14:32:05", status: "active", confidence: 87 },
+  { id: 2, type: "fall", location: "Metro kirish", camera: "Yunusobod-5", time: "13:15:22", status: "resolved", confidence: 94 },
+  { id: 3, type: "crowd", location: "Alay bozori", camera: "Chilonzor-3", time: "12:44:10", status: "active", confidence: 96 },
+  { id: 4, type: "run", location: "Sergeli magistral", camera: "Sergeli-2", time: "11:30:05", status: "resolved", confidence: 79 },
+  { id: 5, type: "fight", location: "Yunusobod 11", camera: "Yunusobod-5", time: "10:22:33", status: "active", confidence: 82 },
+  { id: 6, type: "fall", location: "Mirzo Ulugbek", camera: "MirzoUlugbek-1", time: "09:11:44", status: "resolved", confidence: 91 },
+]

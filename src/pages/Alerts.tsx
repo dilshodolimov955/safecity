@@ -1,77 +1,112 @@
-import { AlertTriangle, MapPin, Clock } from "lucide-react"
-import { alerts, cameras, weeklyStats } from "../data/mock"
+import { useState } from "react"
+import { AlertTriangle, MapPin, Clock, Search } from "lucide-react"
+import { alerts } from "../data/mock"
 
-const typeLabel: Record<string, string> = {
-  stolen: "O'g'irlangan",
-  wanted: "Qidirilmoqda",
-  escaped: "Qochgan",
+type Lang = "uz" | "ru" | "en"
+
+const t = {
+  uz: { title: "Ogohlantirishlar", sub: "Barcha aniqlangan hodisalar", search: "Qidirish...", all: "Barchasi", stolen: "O'g'irlangan", wanted: "Qidirilmoqda", escaped: "Qochgan", today: "bugun", detail: "Batafsil", count: "ta bugun" },
+  ru: { title: "Оповещения", sub: "Все обнаруженные инциденты", search: "Поиск...", all: "Все", stolen: "Украден", wanted: "В розыске", escaped: "Сбежал", today: "сегодня", detail: "Подробнее", count: "сегодня" },
+  en: { title: "Alerts", sub: "All detected incidents", search: "Search...", all: "All", stolen: "Stolen", wanted: "Wanted", escaped: "Escaped", today: "today", detail: "Details", count: "today" },
 }
 
 const typeBadge: Record<string, string> = {
-  stolen: "bg-red-50 text-red-600",
-  wanted: "bg-amber-50 text-amber-600",
-  escaped: "bg-red-50 text-red-700",
+  stolen: "badge-red",
+  wanted: "badge-amber",
+  escaped: "badge-red",
 }
 
-const statusBorder: Record<string, string> = {
-  high: "border-l-4 border-l-red-400",
-  medium: "border-l-4 border-l-amber-400",
+const borderColor: Record<string, string> = {
+  high: "var(--red)",
+  medium: "var(--amber)",
 }
 
-export default function Alerts() {
+export default function Alerts({ lang = "uz" }: { lang?: Lang }) {
+  const tr = t[lang]
+  const [search, setSearch] = useState("")
+  const [filter, setFilter] = useState("all")
+
+  const filtered = alerts.filter((a) => {
+    const matchSearch = a.plate.toLowerCase().includes(search.toLowerCase()) || a.location.toLowerCase().includes(search.toLowerCase())
+    const matchFilter = filter === "all" || a.type === filter
+    return matchSearch && matchFilter
+  })
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }} className="fade-up">
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h1 className="text-lg font-medium text-gray-900">Ogohlantirishlar</h1>
-          <p className="text-sm text-gray-400">Barcha aniqlangan hodisalar</p>
+          <h1 style={{ fontSize: "20px", fontWeight: 600, color: "var(--t1)" }}>{tr.title}</h1>
+          <p style={{ fontSize: "13px", color: "var(--t2)", marginTop: "4px" }}>{tr.sub}</p>
         </div>
-        <div className="flex items-center gap-2 bg-red-50 text-red-600 text-sm px-3 py-1.5 rounded-lg">
-          <AlertTriangle size={14} />
-          <span>{alerts.length} ta bugun</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)", borderRadius: "9px", padding: "8px 14px" }}>
+          <AlertTriangle size={14} color="var(--red)" />
+          <span style={{ fontSize: "13px", color: "var(--red)", fontWeight: 600 }}>{alerts.length} {tr.count}</span>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2">
-        {["Barchasi", "O'g'irlangan", "Qidirilmoqda", "Qochgan"].map((f) => (
-          <button
-            key={f}
-            className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 first:bg-blue-50 first:text-blue-600 first:border-blue-200"
-          >
-            {f}
-          </button>
-        ))}
+      {/* Search + Filter */}
+      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <div style={{ position: "relative", flex: 1 }}>
+          <Search size={14} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--t3)" }} />
+          <input
+            placeholder={tr.search}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ paddingLeft: "36px" }}
+          />
+        </div>
+        <div style={{ display: "flex", gap: "6px" }}>
+          {["all", "stolen", "wanted", "escaped"].map((f) => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`btn btn-ghost ${filter === f ? "active" : ""}`}
+              style={{ padding: "8px 14px", fontSize: "12px" }}
+            >
+              {tr[f as keyof typeof tr]}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Alerts list */}
-      <div className="space-y-3">
-        {alerts.map((a) => (
-          <div
-            key={a.id}
-            className={`bg-white rounded-xl border border-gray-100 p-4 ${statusBorder[a.status]}`}
+      {/* List */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {filtered.map((a, i) => (
+          <div key={a.id} className="card" style={{
+            padding: "14px 16px",
+            borderLeft: `3px solid ${borderColor[a.status]}`,
+            borderRadius: "12px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            animation: `fadeUp .4s ease ${i * 0.05}s forwards`,
+            opacity: 0,
+          }}
+            onMouseEnter={e => (e.currentTarget.style.background = "var(--hover)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "var(--card)")}
           >
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-medium text-gray-900 text-base">{a.plate}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${typeBadge[a.type]}`}>
-                    {typeLabel[a.type]}
+            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+              <div style={{
+                width: "8px", height: "8px", borderRadius: "50%",
+                background: borderColor[a.status],
+                boxShadow: `0 0 8px ${borderColor[a.status]}`,
+              }} className="pulse" />
+              <div>
+                <p style={{ fontFamily: "monospace", fontWeight: 700, fontSize: "15px", color: "var(--t1)", letterSpacing: "1px" }}>{a.plate}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "4px" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "var(--t2)" }}>
+                    <MapPin size={11} /> {a.location}
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "var(--t2)" }}>
+                    <Clock size={11} /> {a.time}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-gray-400">
-                  <MapPin size={12} />
-                  <span>{a.location}</span>
-                </div>
-                <div className="flex items-center gap-1 text-xs text-gray-400">
-                  <Clock size={12} />
-                  <span>{a.time} — bugun</span>
-                </div>
               </div>
-              <div className="flex flex-col items-end gap-2">
-                <div className={`w-2 h-2 rounded-full ${a.status === "high" ? "bg-red-500" : "bg-amber-400"}`} />
-                <button className="text-xs text-blue-500 hover:text-blue-700">Batafsil →</button>
-              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span className={`badge ${typeBadge[a.type]}`}>{tr[a.type as keyof typeof tr]}</span>
+              <button className="btn btn-ghost" style={{ padding: "6px 12px", fontSize: "11px" }}>{tr.detail} →</button>
             </div>
           </div>
         ))}

@@ -1,180 +1,201 @@
 import { useState } from "react"
-import { MapPin, AlertTriangle, Shield, Minus } from "lucide-react"
+import { MapPin, AlertTriangle, Shield, X } from "lucide-react"
+
+type Lang = "uz" | "ru" | "en"
+
+const t = {
+  uz: { title: "Xavfsizlik xaritasi", sub: "Toshkent shahri — real vaqt", all: "Barchasi", high: "Xavfli", medium: "O'rtacha", low: "Xavfsiz", zones: "Hududlar holati", incidents: "hodisa", total: "Jami", highRisk: "Yuqori xavf", medRisk: "O'rtacha", lowRisk: "Xavfsiz" },
+  ru: { title: "Карта безопасности", sub: "Город Ташкент — реальное время", all: "Все", high: "Опасно", medium: "Средний", low: "Безопасно", zones: "Статус районов", incidents: "инцидент", total: "Всего", highRisk: "Высокий риск", medRisk: "Средний", lowRisk: "Безопасно" },
+  en: { title: "Safety map", sub: "Tashkent city — real time", all: "All", high: "Dangerous", medium: "Medium", low: "Safe", zones: "Zone status", incidents: "incidents", total: "Total", highRisk: "High risk", medRisk: "Medium", lowRisk: "Safe" },
+}
 
 const zones = [
-  { id: 1, name: "Chorsu", risk: "high", x: 25, y: 30, incidents: 12 },
-  { id: 2, name: "Chilonzor", risk: "medium", x: 55, y: 55, incidents: 6 },
+  { id: 1, name: "Chorsu", risk: "high", x: 25, y: 28, incidents: 12 },
+  { id: 2, name: "Chilonzor", risk: "medium", x: 52, y: 58, incidents: 6 },
   { id: 3, name: "Yunusobod", risk: "medium", x: 68, y: 20, incidents: 5 },
-  { id: 4, name: "Yakkasaroy", risk: "low", x: 78, y: 58, incidents: 2 },
-  { id: 5, name: "Sergeli", risk: "low", x: 40, y: 70, incidents: 3 },
-  { id: 6, name: "Mirzo Ulugbek", risk: "high", x: 70, y: 40, incidents: 9 },
-  { id: 7, name: "Shayxontohur", risk: "medium", x: 35, y: 45, incidents: 7 },
+  { id: 4, name: "Yakkasaroy", risk: "low", x: 76, y: 60, incidents: 2 },
+  { id: 5, name: "Sergeli", risk: "low", x: 38, y: 72, incidents: 3 },
+  { id: 6, name: "Mirzo Ulugbek", risk: "high", x: 72, y: 38, incidents: 9 },
+  { id: 7, name: "Shayxontohur", risk: "medium", x: 34, y: 44, incidents: 7 },
+  { id: 8, name: "Olmazor", risk: "low", x: 15, y: 55, incidents: 2 },
 ]
 
 const riskConfig = {
-  high: { color: "#ef4444", bg: "bg-red-50", text: "text-red-600", label: "Yuqori xavf", size: 70 },
-  medium: { color: "#f59e0b", bg: "bg-amber-50", text: "text-amber-600", label: "O'rtacha", size: 55 },
-  low: { color: "#22c55e", bg: "bg-green-50", text: "text-green-600", label: "Xavfsiz", size: 45 },
+  high: { color: "#f87171", glow: "rgba(248,113,113,0.3)", size: 72, label: "highRisk" },
+  medium: { color: "#fbbf24", glow: "rgba(251,191,36,0.3)", size: 56, label: "medRisk" },
+  low: { color: "#10b981", glow: "rgba(16,185,129,0.3)", size: 44, label: "lowRisk" },
 }
 
-export default function Map() {
+export default function Map({ lang = "uz" }: { lang?: Lang }) {
+  const tr = t[lang]
   const [selected, setSelected] = useState<typeof zones[0] | null>(null)
   const [filter, setFilter] = useState("all")
 
   const filtered = zones.filter((z) => filter === "all" || z.risk === filter)
+  const total = zones.reduce((a, b) => a + b.incidents, 0)
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }} className="fade-up">
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h1 className="text-lg font-medium text-gray-900">Xavfsizlik xaritasi</h1>
-          <p className="text-sm text-gray-400">Toshkent shahri — real vaqt</p>
+          <h1 style={{ fontSize: "20px", fontWeight: 600, color: "var(--t1)" }}>{tr.title}</h1>
+          <p style={{ fontSize: "13px", color: "var(--t2)", marginTop: "4px" }}>{tr.sub}</p>
         </div>
-        <div className="flex gap-2">
-          {[
-            { key: "all", label: "Barchasi" },
-            { key: "high", label: "Xavfli" },
-            { key: "medium", label: "O'rtacha" },
-            { key: "low", label: "Xavfsiz" },
-          ].map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
-                filter === f.key
-                  ? "bg-blue-50 text-blue-600 border-blue-200"
-                  : "border-gray-200 text-gray-500 hover:bg-gray-50"
-              }`}
+        <div style={{ display: "flex", gap: "6px" }}>
+          {["all", "high", "medium", "low"].map((f) => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`btn btn-ghost ${filter === f ? "active" : ""}`}
+              style={{ padding: "8px 14px", fontSize: "12px" }}
             >
-              {f.label}
+              {tr[f as keyof typeof tr]}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: "14px" }}>
+
         {/* Map */}
-        <div className="col-span-2 bg-white border border-gray-100 rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-            <p className="text-sm font-medium text-gray-800">Toshkent xaritasi</p>
-            <div className="flex items-center gap-3 text-xs text-gray-400">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>Xavfli</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>O'rtacha</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>Xavfsiz</span>
+        <div className="card" style={{ overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--t1)" }}>Toshkent</p>
+            <div style={{ display: "flex", gap: "14px" }}>
+              {["high", "medium", "low"].map((r) => (
+                <div key={r} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: riskConfig[r as keyof typeof riskConfig].color }} />
+                  <span style={{ fontSize: "11px", color: "var(--t2)" }}>{tr[r as keyof typeof tr]}</span>
+                </div>
+              ))}
             </div>
           </div>
-          <div
-            className="relative bg-blue-50"
-            style={{ height: 380 }}
-          >
-            {/* Grid lines */}
+
+          <div style={{ position: "relative", height: "420px", background: "var(--bg)", overflow: "hidden" }}>
+            {/* Grid */}
             {[20, 40, 60, 80].map((p) => (
               <div key={p}>
-                <div className="absolute top-0 bottom-0 border-l border-blue-100" style={{ left: `${p}%` }} />
-                <div className="absolute left-0 right-0 border-t border-blue-100" style={{ top: `${p}%` }} />
+                <div style={{ position: "absolute", top: 0, bottom: 0, left: `${p}%`, borderLeft: "1px solid var(--border)", opacity: 0.4 }} />
+                <div style={{ position: "absolute", left: 0, right: 0, top: `${p}%`, borderTop: "1px solid var(--border)", opacity: 0.4 }} />
               </div>
             ))}
 
             {/* Zones */}
             {filtered.map((zone) => {
-              const config = riskConfig[zone.risk as keyof typeof riskConfig]
+              const cfg = riskConfig[zone.risk as keyof typeof riskConfig]
               return (
-                <div
-                  key={zone.id}
-                  className="absolute cursor-pointer transition-transform hover:scale-110"
-                  style={{
-                    left: `${zone.x}%`,
-                    top: `${zone.y}%`,
-                    transform: "translate(-50%, -50%)",
-                  }}
-                  onClick={() => setSelected(zone)}
+                <div key={zone.id}
+                  style={{ position: "absolute", left: `${zone.x}%`, top: `${zone.y}%`, transform: "translate(-50%,-50%)", cursor: "pointer", zIndex: selected?.id === zone.id ? 10 : 1 }}
+                  onClick={() => setSelected(selected?.id === zone.id ? null : zone)}
                 >
-                  <div
-                    className="rounded-full opacity-30"
-                    style={{
-                      width: config.size,
-                      height: config.size,
-                      background: config.color,
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  />
-                  <div className="relative flex flex-col items-center">
-                    <MapPin
-                      size={20}
-                      fill={config.color}
-                      color={config.color}
-                    />
-                    <span className="text-xs font-medium text-gray-700 bg-white px-1.5 py-0.5 rounded shadow-sm mt-0.5 whitespace-nowrap">
+                  {/* Glow circle */}
+                  <div style={{
+                    position: "absolute", top: "50%", left: "50%",
+                    transform: "translate(-50%,-50%)",
+                    width: cfg.size, height: cfg.size,
+                    borderRadius: "50%",
+                    background: cfg.glow,
+                    transition: "all .3s",
+                  }} />
+                  {/* Pin */}
+                  <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <MapPin size={22} fill={cfg.color} color={cfg.color} style={{ filter: `drop-shadow(0 0 6px ${cfg.color})` }} />
+                    <div style={{
+                      background: "var(--card)", border: `1px solid ${cfg.color}33`,
+                      borderRadius: "6px", padding: "2px 7px", marginTop: "2px",
+                      fontSize: "10px", fontWeight: 600, color: cfg.color,
+                      whiteSpace: "nowrap",
+                    }}>
                       {zone.name}
-                    </span>
+                    </div>
                   </div>
                 </div>
               )
             })}
 
-            {/* Selected popup */}
-            {selected && (
-              <div
-                className="absolute bg-white border border-gray-200 rounded-xl shadow-lg p-3 z-10 w-44"
-                style={{
-                  left: `${Math.min(selected.x + 5, 65)}%`,
-                  top: `${Math.min(selected.y - 10, 70)}%`,
-                }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-gray-900">{selected.name}</p>
-                  <button onClick={() => setSelected(null)} className="text-gray-300 hover:text-gray-500">
-                    <Minus size={13} />
-                  </button>
+            {/* Popup */}
+            {selected && (() => {
+              const cfg = riskConfig[selected.risk as keyof typeof riskConfig]
+              return (
+                <div style={{
+                  position: "absolute",
+                  left: `${Math.min(selected.x + 6, 58)}%`,
+                  top: `${Math.max(selected.y - 18, 5)}%`,
+                  background: "var(--card)",
+                  border: `1px solid ${cfg.color}44`,
+                  borderRadius: "12px",
+                  padding: "14px",
+                  width: "170px",
+                  zIndex: 20,
+                  boxShadow: `0 4px 24px ${cfg.glow}`,
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                    <p style={{ fontSize: "13px", fontWeight: 700, color: "var(--t1)" }}>{selected.name}</p>
+                    <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--t2)" }}><X size={14} /></button>
+                  </div>
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: "5px",
+                    background: `${cfg.color}18`, border: `1px solid ${cfg.color}33`,
+                    borderRadius: "20px", padding: "3px 10px", marginBottom: "10px",
+                  }}>
+                    <AlertTriangle size={10} color={cfg.color} />
+                    <span style={{ fontSize: "11px", fontWeight: 600, color: cfg.color }}>
+                      {tr[cfg.label as keyof typeof tr]}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: "12px", color: "var(--t2)" }}>
+                    {tr.total}: <span style={{ fontWeight: 700, color: "var(--t1)" }}>{selected.incidents}</span> {tr.incidents}
+                  </p>
                 </div>
-                <div className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full mb-2 ${riskConfig[selected.risk as keyof typeof riskConfig].bg} ${riskConfig[selected.risk as keyof typeof riskConfig].text}`}>
-                  <AlertTriangle size={10} />
-                  {riskConfig[selected.risk as keyof typeof riskConfig].label}
-                </div>
-                <p className="text-xs text-gray-500">
-                  Bugun: <span className="font-medium text-gray-800">{selected.incidents} ta hodisa</span>
-                </p>
-              </div>
-            )}
+              )
+            })()}
           </div>
         </div>
 
         {/* Zone list */}
-        <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100">
-            <p className="text-sm font-medium text-gray-800">Hududlar holati</p>
+        <div className="card" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)" }}>
+            <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--t1)" }}>{tr.zones}</p>
           </div>
-          <div className="divide-y divide-gray-50">
-            {zones.map((zone) => {
-              const config = riskConfig[zone.risk as keyof typeof riskConfig]
+          <div style={{ flex: 1, overflowY: "auto" }}>
+            {zones.map((zone, i) => {
+              const cfg = riskConfig[zone.risk as keyof typeof riskConfig]
               return (
-                <div
-                  key={zone.id}
-                  className="px-4 py-3 flex items-center justify-between hover:bg-gray-50 cursor-pointer"
+                <div key={zone.id}
                   onClick={() => setSelected(zone)}
+                  style={{
+                    padding: "12px 16px",
+                    borderBottom: "1px solid var(--border)",
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    cursor: "pointer",
+                    background: selected?.id === zone.id ? "var(--hover)" : "transparent",
+                    transition: "background .15s",
+                    animation: `fadeUp .3s ease ${i * 0.04}s forwards`,
+                    opacity: 0,
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "var(--hover)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = selected?.id === zone.id ? "var(--hover)" : "transparent")}
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ background: config.color }} />
-                    <span className="text-sm text-gray-700">{zone.name}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: cfg.color, boxShadow: `0 0 6px ${cfg.color}` }} />
+                    <span style={{ fontSize: "13px", color: "var(--t1)" }}>{zone.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400">{zone.incidents} hodisa</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${config.bg} ${config.text}`}>
-                      {config.label}
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "11px", color: "var(--t2)" }}>{zone.incidents}</span>
+                    <span style={{
+                      fontSize: "10px", padding: "2px 8px", borderRadius: "20px", fontWeight: 600,
+                      background: `${cfg.color}18`, color: cfg.color, border: `1px solid ${cfg.color}33`,
+                    }}>
+                      {tr[cfg.label as keyof typeof tr]}
                     </span>
                   </div>
                 </div>
               )
             })}
           </div>
-          <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <Shield size={12} />
-              <span>Jami: {zones.reduce((a, b) => a + b.incidents, 0)} ta hodisa</span>
-            </div>
+          <div style={{ padding: "12px 16px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "8px" }}>
+            <Shield size={14} color="var(--blue2)" />
+            <span style={{ fontSize: "12px", color: "var(--t2)" }}>{tr.total}: <span style={{ fontWeight: 700, color: "var(--t1)" }}>{total}</span> {tr.incidents}</span>
           </div>
         </div>
       </div>

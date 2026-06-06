@@ -1,192 +1,217 @@
 import { useState } from "react"
-import { User, Bell, Shield, Camera, Save } from "lucide-react"
+import { User, Bell, Shield, Camera, Check } from "lucide-react"
 
-export default function Settings() {
-  const [notifications, setNotifications] = useState({
-    telegram: true,
-    sms: false,
-    email: true,
-    sound: true,
-  })
+type Lang = "uz" | "ru" | "en"
 
-  const [profile, setProfile] = useState({
-    name: "Ichki Ishlar",
-    email: "admin@ichkiishlar.uz",
-    phone: "+998 90 123 45 67",
-    region: "Toshkent shahri",
-  })
+const t = {
+  uz: {
+    title: "Sozlamalar", sub: "Tizim va profil sozlamalari",
+    profile: "Profil", notifications: "Bildirishnomalar", security: "Xavfsizlik", camera: "Kamera",
+    name: "Ism", email: "Email", phone: "Telefon", region: "Hudud",
+    telegram: "Telegram", telegramDesc: "Bot orqali xabar",
+    sms: "SMS", smsDesc: "Telefonga SMS",
+    emailNotif: "Email", emailDesc: "Elektron pochta",
+    sound: "Ovoz", soundDesc: "Dashboard ovozi",
+    currentPass: "Joriy parol", newPass: "Yangi parol", confirmPass: "Tasdiqlash",
+    fps: "Tahlil tezligi", quality: "Sifat",
+    save: "Saqlash", saved: "Saqlandi",
+    regions: ["Toshkent shahri", "Toshkent viloyati", "Samarqand", "Buxoro", "Andijon"],
+  },
+  ru: {
+    title: "Настройки", sub: "Системные настройки и профиль",
+    profile: "Профиль", notifications: "Уведомления", security: "Безопасность", camera: "Камера",
+    name: "Имя", email: "Email", phone: "Телефон", region: "Регион",
+    telegram: "Telegram", telegramDesc: "Уведомления через бот",
+    sms: "SMS", smsDesc: "SMS на телефон",
+    emailNotif: "Email", emailDesc: "Электронная почта",
+    sound: "Звук", soundDesc: "Звук на дашборде",
+    currentPass: "Текущий пароль", newPass: "Новый пароль", confirmPass: "Подтверждение",
+    fps: "Скорость анализа", quality: "Качество",
+    save: "Сохранить", saved: "Сохранено",
+    regions: ["Ташкент", "Ташкентская обл.", "Самарканд", "Бухара", "Андижан"],
+  },
+  en: {
+    title: "Settings", sub: "System and profile settings",
+    profile: "Profile", notifications: "Notifications", security: "Security", camera: "Camera",
+    name: "Name", email: "Email", phone: "Phone", region: "Region",
+    telegram: "Telegram", telegramDesc: "Bot notifications",
+    sms: "SMS", smsDesc: "Phone SMS",
+    emailNotif: "Email", emailDesc: "Email notifications",
+    sound: "Sound", soundDesc: "Dashboard sound",
+    currentPass: "Current password", newPass: "New password", confirmPass: "Confirm password",
+    fps: "Analysis speed", quality: "Quality",
+    save: "Save", saved: "Saved",
+    regions: ["Tashkent city", "Tashkent region", "Samarkand", "Bukhara", "Andijan"],
+  },
+}
 
+const sections = [
+  { key: "profile", icon: User },
+  { key: "notifications", icon: Bell },
+  { key: "security", icon: Shield },
+  { key: "camera", icon: Camera },
+]
+
+export default function Settings({ lang = "uz" }: { lang?: Lang }) {
+  const tr = t[lang]
+  const [active, setActive] = useState("profile")
   const [saved, setSaved] = useState(false)
+  const [profile, setProfile] = useState({ name: "Ichki Ishlar", email: "admin@ichkiishlar.uz", phone: "+998 90 123 45 67", region: 0 })
+  const [notifs, setNotifs] = useState({ telegram: true, sms: false, emailNotif: true, sound: true })
 
   const handleSave = () => {
     setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    setTimeout(() => setSaved(false), 2500)
   }
 
+  const Toggle = ({ on, onChange }: { on: boolean; onChange: () => void }) => (
+    <button onClick={onChange} style={{
+      width: "42px", height: "22px", borderRadius: "11px", border: "none", cursor: "pointer",
+      background: on ? "var(--blue)" : "var(--border)", position: "relative", transition: "background .2s", flexShrink: 0,
+    }}>
+      <div style={{
+        width: "16px", height: "16px", borderRadius: "50%", background: "white",
+        position: "absolute", top: "3px", transition: "left .2s",
+        left: on ? "23px" : "3px",
+      }} />
+    </button>
+  )
+
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }} className="fade-up">
+
+      {/* Header */}
       <div>
-        <h1 className="text-lg font-medium text-gray-900">Sozlamalar</h1>
-        <p className="text-sm text-gray-400">Tizim va profil sozlamalari</p>
+        <h1 style={{ fontSize: "20px", fontWeight: 600, color: "var(--t1)" }}>{tr.title}</h1>
+        <p style={{ fontSize: "13px", color: "var(--t2)", marginTop: "4px" }}>{tr.sub}</p>
       </div>
 
-      {/* Profile */}
-      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-          <User size={15} className="text-blue-500" />
-          <p className="text-sm font-medium text-gray-800">Profil ma'lumotlari</p>
-        </div>
-        <div className="p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Ism</label>
-              <input
-                value={profile.name}
-                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Email</label>
-              <input
-                value={profile.email}
-                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Telefon</label>
-              <input
-                value={profile.phone}
-                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Hudud</label>
-              <select
-                value={profile.region}
-                onChange={(e) => setProfile({ ...profile, region: e.target.value })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-              >
-                <option>Toshkent shahri</option>
-                <option>Toshkent viloyati</option>
-                <option>Samarqand</option>
-                <option>Buxoro</option>
-                <option>Andijon</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: "16px" }}>
 
-      {/* Notifications */}
-      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-          <Bell size={15} className="text-blue-500" />
-          <p className="text-sm font-medium text-gray-800">Bildirishnomalar</p>
-        </div>
-        <div className="p-4 space-y-3">
-          {[
-            { key: "telegram", label: "Telegram", desc: "Telegram bot orqali xabar" },
-            { key: "sms", label: "SMS", desc: "Telefonga SMS yuborish" },
-            { key: "email", label: "Email", desc: "Elektron pochta orqali" },
-            { key: "sound", label: "Ovozli signal", desc: "Dashboard da ovoz" },
-          ].map(({ key, label, desc }) => (
-            <div key={key} className="flex items-center justify-between py-1">
-              <div>
-                <p className="text-sm text-gray-800">{label}</p>
-                <p className="text-xs text-gray-400">{desc}</p>
-              </div>
-              <button
-                onClick={() => setNotifications({ ...notifications, [key]: !notifications[key as keyof typeof notifications] })}
-                className={`w-10 h-5 rounded-full transition-colors relative ${
-                  notifications[key as keyof typeof notifications] ? "bg-blue-500" : "bg-gray-200"
-                }`}
-              >
-                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-transform ${
-                  notifications[key as keyof typeof notifications] ? "translate-x-5" : "translate-x-0.5"
-                }`} />
-              </button>
-            </div>
+        {/* Section nav */}
+        <div className="card" style={{ padding: "8px", height: "fit-content" }}>
+          {sections.map(({ key, icon: Icon }) => (
+            <button key={key} onClick={() => setActive(key)}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", gap: "10px",
+                padding: "10px 12px", borderRadius: "9px", border: "none", cursor: "pointer",
+                fontSize: "13px", fontWeight: active === key ? 600 : 400,
+                color: active === key ? "var(--blue2)" : "var(--t2)",
+                background: active === key ? "rgba(59,130,246,0.1)" : "transparent",
+                borderLeft: active === key ? "2px solid var(--blue)" : "2px solid transparent",
+                transition: "all .2s", marginBottom: "2px",
+              }}
+              onMouseEnter={e => { if (active !== key) e.currentTarget.style.background = "var(--hover)" }}
+              onMouseLeave={e => { if (active !== key) e.currentTarget.style.background = "transparent" }}
+            >
+              <Icon size={15} />
+              {tr[key as keyof typeof tr]}
+            </button>
           ))}
         </div>
-      </div>
 
-      {/* Security */}
-      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-          <Shield size={15} className="text-blue-500" />
-          <p className="text-sm font-medium text-gray-800">Xavfsizlik</p>
-        </div>
-        <div className="p-4 space-y-3">
-          <div>
-            <label className="text-xs text-gray-400 mb-1 block">Joriy parol</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-gray-400 mb-1 block">Yangi parol</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-gray-400 mb-1 block">Yangi parolni tasdiqlang</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-            />
-          </div>
-        </div>
-      </div>
+        {/* Content */}
+        <div className="card" style={{ padding: "24px" }}>
 
-      {/* Camera settings */}
-      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-          <Camera size={15} className="text-blue-500" />
-          <p className="text-sm font-medium text-gray-800">Kamera sozlamalari</p>
-        </div>
-        <div className="p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Tahlil tezligi (FPS)</label>
-              <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
-                <option>15 FPS</option>
-                <option>24 FPS</option>
-                <option>30 FPS</option>
-              </select>
+          {/* Profile */}
+          {active === "profile" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }} className="fade-in">
+              <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--t1)", marginBottom: "4px" }}>{tr.profile}</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label style={{ fontSize: "11px", color: "var(--t2)", display: "block", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{tr.name}</label>
+                  <input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "11px", color: "var(--t2)", display: "block", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{tr.email}</label>
+                  <input value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "11px", color: "var(--t2)", display: "block", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{tr.phone}</label>
+                  <input value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "11px", color: "var(--t2)", display: "block", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{tr.region}</label>
+                  <select value={profile.region} onChange={(e) => setProfile({ ...profile, region: Number(e.target.value) })}>
+                    {tr.regions.map((r, i) => <option key={i} value={i}>{r}</option>)}
+                  </select>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Rasm sifati</label>
-              <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
-                <option>720p</option>
-                <option>1080p</option>
-                <option>4K</option>
-              </select>
+          )}
+
+          {/* Notifications */}
+          {active === "notifications" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }} className="fade-in">
+              <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--t1)", marginBottom: "12px" }}>{tr.notifications}</p>
+              {[
+                { key: "telegram", label: tr.telegram, desc: tr.telegramDesc },
+                { key: "sms", label: tr.sms, desc: tr.smsDesc },
+                { key: "emailNotif", label: tr.emailNotif, desc: tr.emailDesc },
+                { key: "sound", label: tr.sound, desc: tr.soundDesc },
+              ].map(({ key, label, desc }) => (
+                <div key={key} style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "14px 0", borderBottom: "1px solid var(--border)",
+                }}>
+                  <div>
+                    <p style={{ fontSize: "13px", fontWeight: 500, color: "var(--t1)" }}>{label}</p>
+                    <p style={{ fontSize: "11px", color: "var(--t2)", marginTop: "2px" }}>{desc}</p>
+                  </div>
+                  <Toggle on={notifs[key as keyof typeof notifs]} onChange={() => setNotifs({ ...notifs, [key]: !notifs[key as keyof typeof notifs] })} />
+                </div>
+              ))}
             </div>
+          )}
+
+          {/* Security */}
+          {active === "security" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }} className="fade-in">
+              <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--t1)", marginBottom: "4px" }}>{tr.security}</p>
+              {[tr.currentPass, tr.newPass, tr.confirmPass].map((label) => (
+                <div key={label}>
+                  <label style={{ fontSize: "11px", color: "var(--t2)", display: "block", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</label>
+                  <input type="password" placeholder="••••••••" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Camera */}
+          {active === "camera" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }} className="fade-in">
+              <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--t1)", marginBottom: "4px" }}>{tr.camera}</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label style={{ fontSize: "11px", color: "var(--t2)", display: "block", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{tr.fps}</label>
+                  <select>
+                    <option>15 FPS</option>
+                    <option>24 FPS</option>
+                    <option selected>30 FPS</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: "11px", color: "var(--t2)", display: "block", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{tr.quality}</label>
+                  <select>
+                    <option>720p</option>
+                    <option selected>1080p</option>
+                    <option>4K</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Save */}
+          <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid var(--border)" }}>
+            <button className="btn btn-blue" onClick={handleSave}
+              style={{ background: saved ? "var(--green)" : "var(--blue)", transition: "background .3s" }}
+            >
+              {saved ? <><Check size={14} /> {tr.saved}</> : tr.save}
+            </button>
           </div>
         </div>
       </div>
-
-      {/* Save button */}
-      <button
-        onClick={handleSave}
-        className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-          saved
-            ? "bg-green-500 text-white"
-            : "bg-blue-600 text-white hover:bg-blue-700"
-        }`}
-      >
-        <Save size={15} />
-        {saved ? "Saqlandi ✓" : "Saqlash"}
-      </button>
     </div>
   )
 }
